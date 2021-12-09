@@ -166,29 +166,27 @@ def visualize(img, outputs, predictor,ipath,saveobj=False,frameid=None):
     if saveobj or predictor.opts.n_bones>1:
         seqname = predictor.opts.dataname
         save_dir = predictor.opts.checkpoint_dir
-        vp1_mesh = trimesh.Trimesh(vert_vp1, faces, vertex_colors=255*outputs['tex'].cpu())
-        vp2_mesh = trimesh.Trimesh(vert_vp2, faces, vertex_colors=255*outputs['tex'].cpu())
-        vp3_mesh = trimesh.Trimesh(vert_vp3, faces, vertex_colors=255*outputs['tex'].cpu())
+        vp1_mesh = trimesh.Trimesh(vert_vp1, faces, process=False,vertex_colors=255*outputs['tex'].cpu())
+        vp2_mesh = trimesh.Trimesh(vert_vp2, faces, process=False,vertex_colors=255*outputs['tex'].cpu())
+        vp3_mesh = trimesh.Trimesh(vert_vp3, faces, process=False,vertex_colors=255*outputs['tex'].cpu())
 
         vp1_mesh.export('%s/%s-vp1pred%d.obj'%(save_dir, seqname,frameid))
         vp2_mesh.export('%s/%s-vp2pred%d.obj'%(save_dir, seqname,frameid))
         vp3_mesh.export('%s/%s-vp3pred%d.obj'%(save_dir, seqname,frameid))
         trimesh.Trimesh(np.asarray(outputs['verts_canonical'][0].cpu()), 
-            np.asarray(predictor.faces.cpu()[0])).\
+            np.asarray(predictor.faces.cpu()[0]), process=False).\
         export('%s/%s-mesh-%05d.obj'%(save_dir, seqname, frameid))
         if predictor.bones_3d is not None:
             colormap = torch.Tensor(citylabs[:predictor.bones_3d.shape[1]]).cuda() # 5x3
-            # gaussian
-            skin = predictor.gauss_skin[0,:,:,0]
-            skin_colors = skin.T
-            skin_colors = (skin_colors[:,:,None] * colormap[None]).sum(1)
+            skin_colors = predictor.skin_colors
             bone_colors = colormap[None].repeat(predictor.nsphere_verts,1,1).permute(1,0,2).reshape(-1,3)
             bone_mesh = trimesh.Trimesh( np.asarray(predictor.gaussian_3d[0].cpu()),
                                          predictor.sphere.faces,
+                                         process=False,
                                         vertex_colors=np.asarray(bone_colors.cpu())) 
             bone_mesh.export('%s/%s-gauss%d.obj'%(save_dir, seqname, frameid))
-                        
-            skin_mesh = trimesh.Trimesh(vert_vp1, faces, vertex_colors=skin_colors.cpu())
+                       
+            skin_mesh = trimesh.Trimesh(vert_vp1, faces, process=False,vertex_colors=skin_colors.cpu())
             skin_mesh.export('%s/%s-skinpred%d.obj'%(save_dir, seqname,  frameid))
             
         # camera

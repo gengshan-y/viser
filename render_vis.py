@@ -97,7 +97,7 @@ def main():
         try:
             mesh = trimesh.load('%s/%s-%s%d.obj'%(args.testdir, args.seqname, targetstr, fr),process=False)
             cam = np.loadtxt('%s/%s-cam%d.txt'%(args.testdir,args.seqname,fr))
-            trimesh.repair.fix_inversion(mesh)
+            #trimesh.repair.fix_inversion(mesh)
             if args.watertight=='yes':
                 mesh = remesh(mesh) 
             all_mesh.append(mesh)

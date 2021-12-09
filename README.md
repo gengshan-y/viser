@@ -62,7 +62,7 @@ Example outputs:
 <img src="figs/rbreakdance-flare-all.gif" alt="" width="66.7%" />
 </p>
 
-## Example: elephants (under construction)
+## Example: elephants
 Run
 ```
 bash scripts/relephant-walk.sh
