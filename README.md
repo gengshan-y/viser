@@ -80,10 +80,10 @@ bash scripts/render_elephants.sh log/elephant-walk-1003-6/pred_net_10.pth
 
 ## Additional Notes
 
-<details><summary>Distributed training</summary>
+<details><summary>Multi-GPU training</summary>
 
-The current codebase supports single-node multi-gpu training with pytorch distributed data-parallel.
-Please modify `dev` and `ngpu` in `scripts/template.sh` to select devices.
+By default we use 1 GPU. The codebase also supports single-node multi-gpu training with pytorch distributed data-parallel.
+Please modify `dev` and `ngpu` in `scripts/xxx.sh` to select devices.
 
 </details>
 

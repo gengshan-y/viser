@@ -183,10 +183,9 @@ class LASRTrainer(Trainer):
         opts = self.opts
         self.init_dataset()    
         self.define_model()
-        new_params=[]
+        cnn_params=[]
         nerf_params=[]
         nerf_shape_params=[]
-        nerf_time_params=[]
         for name,p in self.model.module.named_parameters():
             if name == 'mean_v': print('found mean v'); continue
             if name == 'rots': print('found rots'); continue
@@ -199,22 +198,17 @@ class LASRTrainer(Trainer):
             if name == 'ctl_rs': print('found ctl rotation'); continue
             if name == 'ctl_ts': print('found ctl points'); continue
             if name == 'joint_ts': print('found joint points'); continue
-            if name == 'light_params': print('found light_params points'); continue
             if name == 'transg': print('found global translation'); continue
             if name == 'log_ctl': print('found log ctl'); continue
-            if name == 'shape_code_fix': print('found shape basis'); continue
             if 'nerf_tex' in name or 'nerf_feat' in name or 'nerf_coarse' in name or 'nerf_fine' in name: 
                 print('found %s'%name); nerf_params.append(p); continue
             if 'nerf_shape' in name or 'nerf_mshape' in name: 
                 print('found %s'%name); nerf_shape_params.append(p); continue
-            if 'nerf_time' in name:
-                print('found %s'%name); nerf_time_params.append(p); continue
-            new_params.append(p)
+            cnn_params.append(p)
         self.optimizer = torch.optim.AdamW(
-            [{'params': new_params},
+            [{'params': cnn_params},
              {'params': nerf_params, 'lr': 10*opts.learning_rate},
              {'params': nerf_shape_params, 'lr': 10*opts.learning_rate},
-             {'params': nerf_time_params, 'lr': 10*opts.learning_rate},
              {'params': self.model.module.mean_v, 'lr':50*opts.learning_rate},
              {'params': self.model.module.pps, 'lr':50*opts.learning_rate},
              {'params': self.model.module.tex, 'lr':50*opts.learning_rate},
@@ -222,8 +216,6 @@ class LASRTrainer(Trainer):
              {'params': self.model.module.ctl_ts, 'lr':50*opts.learning_rate},
              {'params': self.model.module.joint_ts, 'lr':50*opts.learning_rate},
              {'params': self.model.module.log_ctl, 'lr':50*opts.learning_rate},
-             {'params': self.model.module.light_params, 'lr':50*opts.learning_rate},
-             {'params': self.model.module.shape_code_fix, 'lr':50*opts.learning_rate},
             ],
             lr=opts.learning_rate,betas=(0.9, 0.999),weight_decay=1e-4)
             
@@ -231,9 +223,7 @@ class LASRTrainer(Trainer):
         cnnlr = opts.learning_rate
         nerflr= 10*opts.learning_rate
         nerf_shape_lr= 10*opts.learning_rate
-        nerf_time_lr= 10*opts.learning_rate
         conslr = 50*opts.learning_rate
-        lr_meanv = 50*opts.learning_rate
 
         pct_start = 0.01
         div_factor = 25
@@ -242,18 +232,16 @@ class LASRTrainer(Trainer):
         [cnnlr,
         nerflr, # nerf-params
         nerf_shape_lr, # nerf shape params
-        nerf_time_lr, # nerf shape params
         lr_meanv,
-        50*opts.learning_rate, # pps
+        conslr, # pps
         conslr, # tex
         conslr, # ctl rs 
         conslr, # ctl ts 
         conslr, # joint ts 
         conslr, # log ctl
-        conslr, # light_params
-        conslr, # shape code fix
         ],
-        200*len(self.dataloader), pct_start=pct_start, cycle_momentum=False, anneal_strategy='linear',final_div_factor=1./25, div_factor = div_factor)
+        200*len(self.dataloader), pct_start=pct_start, cycle_momentum=False, 
+       anneal_strategy='linear',final_div_factor=1./25, div_factor = div_factor)
 
     def train(self):
         opts = self.opts
@@ -358,7 +346,6 @@ class LASRTrainer(Trainer):
                 cam_grad = []
                 nerf_mshape_grad = []
                 nerf_tex_grad = []
-                nerf_time_grad = []
                 for name,p in self.model.module.named_parameters():
                     #print(name)
                     if 'mean_v' == name and p.grad is not None:
@@ -368,8 +355,6 @@ class LASRTrainer(Trainer):
                         nerf_mshape_grad.append(p)
                     elif p.grad is not None and ('nerf_tex' in name):
                         nerf_tex_grad.append(p)
-                    elif p.grad is not None and ('nerf_time' in name):
-                        nerf_time_grad.append(p)
                     elif p.grad is not None and ('code_predictor' in name or 'encoder' in name):
                         cam_grad.append(p)
                     if (not p.grad is None) and (torch.isnan(p.grad).sum()>0):
@@ -377,7 +362,6 @@ class LASRTrainer(Trainer):
                 self.grad_cam_norm = torch.nn.utils.clip_grad_norm_(cam_grad, 10.)
                 self.grad_nerf_tex_norm = torch.nn.utils.clip_grad_norm_(nerf_tex_grad, 1.)
                 self.grad_nerf_mshape_norm = torch.nn.utils.clip_grad_norm_(nerf_mshape_grad, 1)
-                self.grad_nerf_time_norm = torch.nn.utils.clip_grad_norm_(nerf_time_grad, 0.1)
 
                 if opts.local_rank==0 and torch.isnan(self.model.module.total_loss):
                     pdb.set_trace()
@@ -470,7 +454,6 @@ class LASRTrainer(Trainer):
                     if hasattr(self, 'grad_cam_norm'):log.add_scalar('train/grad_cam_norm',self.grad_cam_norm, total_steps)
                     if hasattr(self, 'grad_nerf_mshape_norm'):log.add_scalar('train/grad_nerf_mshape_norm',self.grad_nerf_mshape_norm, total_steps)
                     if hasattr(self, 'grad_nerf_tex_norm'):log.add_scalar('train/grad_nerf_tex_norm',self.grad_nerf_tex_norm, total_steps)
-                    if hasattr(self, 'grad_nerf_time_norm'):log.add_scalar('train/grad_nerf_time_norm',self.grad_nerf_time_norm, total_steps)
                         
                     if hasattr(self.model.module, 'sampled_img_obs_vis'):
                         if i%10==0:
@@ -568,7 +551,6 @@ class LASRTrainer(Trainer):
             states['ctl_ts'] = states['ctl_ts'][:1].repeat(self.model.numvid, 1,1,1)
             states['ctl_rs'] = states['ctl_rs'][:1].repeat(self.model.numvid, 1,1,1)
             states['log_ctl'] = states['log_ctl'][:1].repeat(self.model.numvid,1, 1,1)
-            del states['shape_code_fix']
 
         network.load_state_dict(pretrained_dict,strict=False)
         return

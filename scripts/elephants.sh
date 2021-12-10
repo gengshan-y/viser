@@ -1,6 +1,10 @@
-dev=0,1,2,3
-ngpu=4
-bs=1
+dev=0
+ngpu=1
+bs=4
+
+#dev=0,1,2,3
+#ngpu=4
+#bs=1
 
 seed=1003
 address=1259
@@ -30,7 +34,10 @@ CUDA_VISIBLE_DEVICES=$dev python -m torch.distributed.launch \
     --num_epochs $nepoch --dataname $dataname  --ngpu $ngpu --batch_size $bs -cnnpp \
     --model_path $checkpoint_dir/$logname-2/pred_net_latest.pth   --finetune --n_faces 1603
 
-bs=2
+#TODO modify here
+#bs=2 # 4gpu
+bs=8 # 1gpu
+
 dataname=elephants
 CUDA_VISIBLE_DEVICES=$dev python -m torch.distributed.launch \
     --master_port $address --nproc_per_node=$ngpu optimize.py \

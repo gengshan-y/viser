@@ -32,6 +32,7 @@ import torchvision
 import torch.nn as nn
 import math
 import kornia
+import pdb
 
 class Flatten(nn.Module):
     def forward(self, x):
@@ -425,7 +426,7 @@ class CodePredictor(nn.Module):
     def __init__(self, nz_feat=100, num_verts=1000,n_bones = None, n_hypo=None):
         super(CodePredictor, self).__init__()
         self.offset = 20
-        torch.manual_seed(0)
+        #torch.manual_seed(0)
         self.quat_predictor = QuatPredictor(nz_feat, n_bones=n_bones, n_hypo=n_hypo)
         self.scale_predictor = DepthPredictor(nz_feat,n_bones=n_hypo,offset=self.offset)
         self.trans_predictor = TransPredictor(nz_feat,n_bones=n_bones)
@@ -446,7 +447,7 @@ class CodePredictor(nn.Module):
         depth_pred[:,:,1:] =  (depth_pred[:,:,1:]-self.offset)/10.
         depth_pred = depth_pred.view(feat.shape[0],-1)
         
-        ppoint_pred = self.ppoint_predictor.forward(feat)/10.
+        ppoint_pred = self.ppoint_predictor.forward(feat)/100.
         return scale_pred, trans_pred, quat_pred, depth_pred, ppoint_pred
 
 

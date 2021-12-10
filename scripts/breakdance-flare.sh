@@ -1,10 +1,10 @@
-#dev=7
-#ngpu=1
-#batch_size=4
+dev=0
+ngpu=1
+batch_size=4
 
-dev=0,1,2,3
-ngpu=4
-batch_size=1
+#dev=0,1,2,3
+#ngpu=4
+#batch_size=1
 
 seed=1003
 address=1111
