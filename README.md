@@ -62,6 +62,8 @@ Example outputs:
 <img src="figs/rbreakdance-flare-all.gif" alt="" width="66.7%" />
 </p>
 
+To optimize dance-twirl, check out `scripts/dance-twirl.sh`.
+
 ## Example: elephants
 Run
 ```
@@ -73,7 +75,7 @@ To monitor optimization, run
 tensorboard --logdir log/
 ```
 
-To render optimized breakdance-flare
+To render optimized shapes
 ```
 bash scripts/render_elephants.sh log/elephant-walk-1003-6/pred_net_10.pth
 ```

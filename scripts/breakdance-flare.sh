@@ -11,6 +11,8 @@ address=1111
 logname=breakdance-flare-$seed
 checkpoint_dir=log
 
+# optimize viser on a subset of video frames
+# for breakdance-flare we use start: 22, end: 42
 dataname=breakdance-flare-init
 CUDA_VISIBLE_DEVICES=$dev python -m torch.distributed.launch \
     --master_port $address --nproc_per_node=$ngpu optimize.py \
@@ -27,6 +29,8 @@ CUDA_VISIBLE_DEVICES=$dev python -m torch.distributed.launch \
     --num_epochs 10 --dataname $dataname  --ngpu $ngpu --batch_size $batch_size \
     --model_path $checkpoint_dir/$logname-1/pred_net_latest.pth  --finetune --n_faces 1602
 
+# start-idx and end-idx are determined by the initization subset of frames
+# delta-max-cap is computed as max( number-of-frames - end-idx, start-idx - 0)
 dataname=breakdance-flare
 CUDA_VISIBLE_DEVICES=$dev python -m torch.distributed.launch \
     --master_port $address --nproc_per_node=$ngpu optimize.py \
