@@ -1,18 +1,3 @@
-# Copyright 2021 Google LLC
-# 
-# Licensed under the Apache License, Version 2.0 (the "License");
-# you may not use this file except in compliance with the License.
-# You may obtain a copy of the License at
-# 
-#     https://www.apache.org/licenses/LICENSE-2.0
-# 
-# Unless required by applicable law or agreed to in writing, software
-# distributed under the License is distributed on an "AS IS" BASIS,
-# WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
-# See the License for the specific language governing permissions and
-# limitations under the License.
-
-
 from __future__ import print_function
 import sys
 sys.path.insert(0,'third_party')
@@ -46,10 +31,10 @@ parser.add_argument('--testres', type=float, default=1,
                     help='resolution')
 parser.add_argument('--maxdisp', type=int ,default=256,
                     help='maxium disparity. Only affect the coarsest cost volume size')
+parser.add_argument('--dframe', type=int ,default=2,
+                    help='how many frames to skip')
 parser.add_argument('--fac', type=float ,default=1,
                     help='controls the shape of search grid. Only affect the coarse cost volume size')
-parser.add_argument('--flow_threshold', type=float ,default=0.05,
-                    help='flow threshold that controls frame skipping')
 args = parser.parse_args()
 
 
@@ -72,16 +57,6 @@ if args.loadmodel is not None:
 else:
     print('dry run')
 print('Number of model parameters: {}'.format(sum([p.data.nelement() for p in model.parameters()])))
-
-seqname = args.datapath.strip().split('/')[-2]
-
-mkdir_p('./%s/JPEGImages' % (seqname))
-mkdir_p('./%s/FlowFW'     % (seqname))
-mkdir_p('./%s/FlowBW'     % (seqname))
-mkdir_p('./%s/Annotations'% (seqname))
-
-test_left_img = sorted(glob.glob('%s/*'%(args.datapath)))
-silhouettes = sorted(glob.glob('%s/*'%(args.datapath.replace('JPEGImages', 'Annotations'))))
 
 def flow_inference(imgL_o, imgR_o):
     # for gray input images
@@ -164,55 +139,34 @@ def flow_inference(imgL_o, imgR_o):
     return flow, occ
 
 def main():
+    test_left_img = sorted(glob.glob('%s/*'%(args.datapath)))
+    seqname = args.datapath.strip().split('/')[-2]
+    fwdir = args.datapath.replace('JPEGImages', 'FlowFW').replace(seqname, '%s_%02d'%(seqname, args.dframe))
+    bwdir = args.datapath.replace('JPEGImages', 'FlowBW').replace(seqname, '%s_%02d'%(seqname, args.dframe))
+    mkdir_p(fwdir)
+    mkdir_p(bwdir)
+    
     model.eval()
-    inx=0;jnx=1
-    ix =0
+    inx=0;jnx=args.dframe
     while True:
         print('%s/%s'%(test_left_img[inx],test_left_img[jnx]))
-        imgL_o = cv2.imread(test_left_img[inx])[:,:,::-1]
-        imgR_o = cv2.imread(test_left_img[jnx])[:,:,::-1]
-        mask  =cv2.imread(silhouettes[inx],0)
-        maskR =cv2.imread(silhouettes[jnx],0)
-        masko = mask.copy()
-        maskRo = maskR.copy()
-        mask  =np.logical_and(mask>0, mask!=255)
-        maskR =np.logical_and(maskR>0,maskR!=255)
-            
-        indices = np.where(mask>0); xid = indices[1]; yid = indices[0]
-        length = [ (xid.max()-xid.min())//2, (yid.max()-yid.min())//2]
-
-        flowfw, occfw = flow_inference(imgL_o, imgR_o)
-        flowfw_normed = np.concatenate( [flowfw[:,:,:1]/length[0], flowfw[:,:,1:2]/length[1]],-1 )
-        medflow = np.median(np.linalg.norm(flowfw_normed[mask],2,-1))
-        medocc = np.median(occfw[mask])
-        print('%.3f, %.2f'%(medflow, medocc))
-       
-        if medflow > args.flow_threshold:
+        if inx%args.dframe==0:
+            imgL_o = cv2.imread(test_left_img[inx])[:,:,::-1]
+            imgR_o = cv2.imread(test_left_img[jnx])[:,:,::-1]
+            flowfw, occfw = flow_inference(imgL_o, imgR_o)
             flowbw, occbw = flow_inference(imgR_o, imgL_o)
-            # save predictions
-            write_pfm('%s/FlowFW/flo-%05d.pfm'% (seqname,ix  ),flowfw[::-1].astype(np.float32))
-            write_pfm('%s/FlowFW/occ-%05d.pfm'% (seqname,ix  ),occfw[::-1].astype(np.float32))
-            write_pfm('%s/FlowBW/flo-%05d.pfm'% (seqname,ix+1),flowbw[::-1].astype(np.float32))
-            write_pfm('%s/FlowBW/occ-%05d.pfm'% (seqname,ix+1),occbw[::-1].astype(np.float32))
-            imwarped = warp_flow(imgR_o, flowfw[:,:,:2])
-            cv2.imwrite('%s/FlowFW/warp-%05d.jpg'% (seqname, ix),imwarped[:,:,::-1])
-            imwarped = warp_flow(imgL_o, flowbw[:,:,:2])
-            cv2.imwrite('%s/FlowBW/warp-%05d.jpg'% (seqname, ix+1),imwarped[:,:,::-1])
-
-            flowvis = flowfw.copy(); flowvis[~mask]=0
-            flowvis = point_vec(imgL_o, flowvis)
-            cv2.imwrite('%s/FlowFW/visflo-%05d.jpg'% (seqname, ix),flowvis)
-            flowvis = flowbw.copy(); flowvis[~maskR]=0
-            flowvis = point_vec(imgR_o, flowvis)
-            cv2.imwrite('%s/FlowBW/visflo-%05d.jpg'% (seqname, ix+1),flowvis)
-            cv2.imwrite('%s/JPEGImages/%05d.jpg'% (seqname,ix), imgL_o[:,:,::-1])
-            cv2.imwrite('%s/JPEGImages/%05d.jpg'% (seqname,ix+1), imgR_o[:,:,::-1])
-            cv2.imwrite('%s/Annotations/%05d.png'% (seqname,ix), masko.astype(np.uint8))
-            cv2.imwrite('%s/Annotations/%05d.png'% (seqname,ix+1), maskRo.astype(np.uint8))
-            inx=jnx 
-            ix+=1
+        else:
+            flowfw = np.zeros((10,10,3))
+            flowbw = np.zeros((10,10,3))
+            occfw = np.zeros((10,10))
+            occbw = np.zeros((10,10))
+        # save predictions
+        write_pfm('%s/flo-%05d.pfm'% (fwdir,inx),flowfw[::-1].astype(np.float32))
+        write_pfm('%s/occ-%05d.pfm'% (fwdir,inx),occfw[::-1].astype(np.float32))
+        write_pfm('%s/flo-%05d.pfm'% (bwdir,jnx),flowbw[::-1].astype(np.float32))
+        write_pfm('%s/occ-%05d.pfm'% (bwdir,jnx),occbw[::-1].astype(np.float32))
+        inx+=1
         jnx+=1
-
         torch.cuda.empty_cache()
                 
             

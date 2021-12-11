@@ -37,7 +37,7 @@ DAVIS/
                 warp-{%05d}.jpg
 ```
 
-To run preprocessing scripts on other videos, see [install.md](./docs/preprocess.md). 
+To run preprocessing scripts on other videos, see [here](./preprocess/README.md). 
 
 ## Example: breakdance-flare
 Run 
@@ -142,7 +142,6 @@ External repos:
 </details>
 
 ## TODO
-- data pre-processing scripts
 - evaluation data and scripts
 - code clean up
 
