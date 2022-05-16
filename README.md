@@ -1,5 +1,10 @@
 # ViSER
 
+For better and more robust reconstruction of quadreped animals and human, please check out [BANMo](https://github.com/facebookresearch/banmo).
+
+### Changelog
+- **05/16/22**: Fix flip bug in flow pre-computation.
+
 ## Installation with conda
 ```
 conda env create -f viser.yml
@@ -42,7 +47,7 @@ To run preprocessing scripts on other videos, see [here](./preprocess/README.md)
 ## Example: breakdance-flare
 Run 
 ```
-bash scripts/template.sh breakdance-flare
+bash scripts/breakdance-flare.sh
 ```
 
 To monitor optimization, run

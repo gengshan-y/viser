@@ -161,10 +161,10 @@ def main():
             occfw = np.zeros((10,10))
             occbw = np.zeros((10,10))
         # save predictions
-        write_pfm('%s/flo-%05d.pfm'% (fwdir,inx),flowfw[::-1].astype(np.float32))
-        write_pfm('%s/occ-%05d.pfm'% (fwdir,inx),occfw[::-1].astype(np.float32))
-        write_pfm('%s/flo-%05d.pfm'% (bwdir,jnx),flowbw[::-1].astype(np.float32))
-        write_pfm('%s/occ-%05d.pfm'% (bwdir,jnx),occbw[::-1].astype(np.float32))
+        write_pfm('%s/flo-%05d.pfm'% (fwdir,inx),flowfw.astype(np.float32))
+        write_pfm('%s/occ-%05d.pfm'% (fwdir,inx), occfw.astype(np.float32))
+        write_pfm('%s/flo-%05d.pfm'% (bwdir,jnx),flowbw.astype(np.float32))
+        write_pfm('%s/occ-%05d.pfm'% (bwdir,jnx), occbw.astype(np.float32))
         inx+=1
         jnx+=1
         torch.cuda.empty_cache()

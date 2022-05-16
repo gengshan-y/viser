@@ -190,10 +190,10 @@ def main():
         if medflow > args.flow_threshold:
             flowbw, occbw = flow_inference(imgR_o, imgL_o)
             # save predictions
-            write_pfm('%s/FlowFW/flo-%05d.pfm'% (seqname,ix  ),flowfw[::-1].astype(np.float32))
-            write_pfm('%s/FlowFW/occ-%05d.pfm'% (seqname,ix  ),occfw[::-1].astype(np.float32))
-            write_pfm('%s/FlowBW/flo-%05d.pfm'% (seqname,ix+1),flowbw[::-1].astype(np.float32))
-            write_pfm('%s/FlowBW/occ-%05d.pfm'% (seqname,ix+1),occbw[::-1].astype(np.float32))
+            write_pfm('%s/FlowFW/flo-%05d.pfm'% (seqname,ix  ),flowfw.astype(np.float32))
+            write_pfm('%s/FlowFW/occ-%05d.pfm'% (seqname,ix  ), occfw.astype(np.float32))
+            write_pfm('%s/FlowBW/flo-%05d.pfm'% (seqname,ix+1),flowbw.astype(np.float32))
+            write_pfm('%s/FlowBW/occ-%05d.pfm'% (seqname,ix+1), occbw.astype(np.float32))
             imwarped = warp_flow(imgR_o, flowfw[:,:,:2])
             cv2.imwrite('%s/FlowFW/warp-%05d.jpg'% (seqname, ix),imwarped[:,:,::-1])
             imwarped = warp_flow(imgL_o, flowbw[:,:,:2])
