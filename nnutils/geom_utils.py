@@ -74,23 +74,24 @@ def render_flow_soft_3(renderer_soft, verts, verts_target, faces):
     """
     Render optical flow from two frame 3D vertex locations 
     """
+    verts = verts.clone()
+    verts_target = verts_target.clone()
     offset = torch.Tensor( renderer_soft.transform.transformer._eye ).cuda()[np.newaxis,np.newaxis]
     verts_pre = verts[:,:,:3]+offset; verts_pre[:,:,1] = -1*verts_pre[:,:,1]
    
     verts_pos_px = renderer_soft.render_mesh(sr.Mesh(verts_pre, faces, 
                                             textures=verts_target[:,:,:3],texture_type='vertex')).clone()
-    fgmask = verts_pos_px[:,-1]
+    verts_pos0_px = renderer_soft.render_mesh(sr.Mesh(verts_pre, faces, 
+                                            textures=verts[:,:,:3],texture_type='vertex')).clone()
     verts_pos_px = verts_pos_px.permute(0,2,3,1)
+    verts_pos0_px = verts_pos0_px.permute(0,2,3,1)
     
-    bgmask = (verts_pos_px[:,:,:,2]<1e-9)
+    fgmask = verts_pos_px[:,-1]
+    bgmask = (verts_pos_px[:,:,:,2]<1e-9) | (verts_pos0_px[:,:,:,2]<1e-9)
     verts_pos_px[bgmask]=10
+    verts_pos0_px[bgmask]=10
 
-    verts_pos0_px = torch.Tensor(np.meshgrid(range(bgmask.shape[2]), range(bgmask.shape[1]))).cuda()
-    verts_pos0_px[0] = verts_pos0_px[0]*2 / (bgmask.shape[2] - 1) - 1
-    verts_pos0_px[1] = verts_pos0_px[1]*2 / (bgmask.shape[1] - 1) - 1
-    verts_pos0_px = verts_pos0_px.permute(1,2,0)[None] 
-
-    flow_fw = (verts_pos_px[:,:,:,:2] - verts_pos0_px)
+    flow_fw = (verts_pos_px[:,:,:,:2] - verts_pos0_px[...,:2])
     flow_fw[bgmask] = flow_fw[bgmask].detach()
     return flow_fw, bgmask, fgmask
 

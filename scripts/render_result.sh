@@ -10,7 +10,7 @@ prefix=$testdir/$seqname
 
 # predict articulated meshes
 python extract.py --model_path $model_path  --checkpoint_dir $testdir\
-            --dataname $seqname --n_bones 36 \
+            --dataname $seqname --n_bones $n_bones \
             $add_args
 
 # convert to videos

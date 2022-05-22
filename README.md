@@ -4,6 +4,7 @@ For better and more robust reconstruction of quadreped animals and human, please
 
 ### Changelog
 - **05/16/22**: Fix flip bug in flow pre-computation.
+- **05/22/22**: Fix bug in flow rendering that causes self-intersection.
 
 ## Installation with conda
 ```
@@ -72,7 +73,7 @@ To optimize dance-twirl, check out `scripts/dance-twirl.sh`.
 ## Example: elephants
 Run
 ```
-bash scripts/relephant-walk.sh
+bash scripts/elephants.sh
 ```
 
 To monitor optimization, run
@@ -82,7 +83,7 @@ tensorboard --logdir log/
 
 To render optimized shapes
 ```
-bash scripts/render_elephants.sh log/elephant-walk-1003-6/pred_net_10.pth
+bash scripts/render_elephants.sh log/elephant-walk-1003-6/pred_net_10.pth 36
 ```
 
 ## Additional Notes

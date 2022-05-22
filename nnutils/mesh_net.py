@@ -924,12 +924,13 @@ class LASR(MeshNet):
         else:
             self.smooth_sub = compute_geodesic_distance_from_two_matrices(quat.view(-1,1,opts.n_bones,9)[:local_batch_size//2,:].view(-1,3,3),
                                                                            quat.view(-1,1,opts.n_bones,9)[local_batch_size//2:,:].view(-1,3,3)).view(-1,1,opts.n_bones)
-            self.cam_loss =  0.01*self.smooth_sub.mean()
-            if opts.n_bones>1:
-                self.cam_loss += 0.01*(trans.view(-1,1,opts.n_bones,2)[:local_batch_size//2,:,1:] - 
-                              trans.view(-1,1,opts.n_bones,2)[local_batch_size//2:,:,1:]).abs().mean()
-                self.cam_loss += 0.01*(depth.view(-1,1,opts.n_bones,1)[:local_batch_size//2,:,1:] - 
-                              depth.view(-1,1,opts.n_bones,1)[local_batch_size//2:,:,1:]).abs().mean()
+            self.cam_loss =  0.*self.smooth_sub.mean()
+            #self.cam_loss =  0.01*self.smooth_sub.mean()
+            #if opts.n_bones>1:
+            #    self.cam_loss += 0.01*(trans.view(-1,1,opts.n_bones,2)[:local_batch_size//2,:,1:] - 
+            #                  trans.view(-1,1,opts.n_bones,2)[local_batch_size//2:,:,1:]).abs().mean()
+            #    self.cam_loss += 0.01*(depth.view(-1,1,opts.n_bones,1)[:local_batch_size//2,:,1:] - 
+            #                  depth.view(-1,1,opts.n_bones,1)[local_batch_size//2:,:,1:]).abs().mean()
         self.total_loss += self.cam_loss
 
         # 9) aux losses
