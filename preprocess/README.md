@@ -18,7 +18,15 @@ bash preprocess/auto_gen.sh breakdance-flare
 
 Please follow files in `./configs` to write the config file.
 
-### Note 
-When optimizing a high framerate video, we found it useful to use skip-frame flow for initialization.
-In auto_gen.sh, the commented last several lines estimates skip-frame optical flow. 
-Please follow `configs/elephant-walk-init.sh` to set dframe to the number of skipped frames.
+### Note on skip-frame flow
+When optimizing a high framerate video, we found it useful to compute skip-frame 
+optical flow to get longer-range correspondences.
+
+After running `auto_gen.sh`, to further compute flow every 3 and 5 frames
+```
+bash preprocess/auto_gen_skip.sh camel
+# modify $dframe variable in the script to use other skipping factors
+```
+
+Then follow `configs/camel-init.config` to set `dframe` to the number of skipped frames.
+See `scripts/camel.sh` for a complete optimization pipeline.
