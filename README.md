@@ -86,6 +86,17 @@ To render optimized shapes
 bash scripts/render_elephants.sh log/elephant-walk-1003-6/pred_net_10.pth 36
 ```
 
+Example outputs:
+
+https://user-images.githubusercontent.com/13134872/169685154-b8a37a2a-d616-4492-9503-7636f04fab31.mp4
+
+https://user-images.githubusercontent.com/13134872/169685177-f125ce0b-7fd2-41be-af3a-2ec5d91dda0e.mp4
+
+https://user-images.githubusercontent.com/13134872/169685164-bb0a3433-e4b0-428a-8204-689aeb4687b2.mp4
+
+
+
+
 ## Additional Notes
 
 <details><summary>Multi-GPU training</summary>
