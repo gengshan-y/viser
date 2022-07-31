@@ -96,6 +96,26 @@ flags.DEFINE_string('model_path', '',
                     'load model path')
 
 
+def render_feature(pred_v, faces, vfeat, Rmat, Tmat, skin, ppoint, scale,
+                renderer_softfls, local_batch_size, n_mesh):
+    feats_render = []
+    multip = vfeat.shape[-1]//3
+    vfeat = vfeat[:,:,:multip*3].view(local_batch_size, vfeat.shape[1],multip,3).permute(2,0,1,3).reshape(local_batch_size*multip,-1,3)
+    pred_v = pred_v.repeat(multip,1,1).clone()
+    faces = faces.repeat(multip,1,1).clone()
+    Rmat = Rmat.repeat(multip,1,1).clone()
+    Tmat = Tmat.repeat(multip,1).clone()
+    skin  = skin.repeat(multip,1,1,1).clone()
+    ppoint  = ppoint.repeat(multip,1,1).clone()
+    scale  = scale.repeat(multip,1,1).clone()
+
+    feat_render = render_multiplex(pred_v, faces, vfeat, Rmat, Tmat, skin, ppoint, scale, renderer_softfls, local_batch_size*multip,n_mesh)
+    feat_render = feat_render.view(multip, local_batch_size, 4, feat_render.shape[-2], feat_render.shape[-1])
+    mask_render = feat_render[0,:,-1]
+    feat_render = feat_render.permute(1,0,2,3,4)[:,:,:3].reshape(local_batch_size, -1, feat_render.shape[-2], feat_render.shape[-1])
+    feat_render = feat_render * mask_render[:,None]
+    return feat_render, mask_render
+
 def reg_decay(curr_steps, max_steps, min_wt,max_wt):
     """
     max weight to min weight
@@ -761,6 +781,24 @@ class LASR(MeshNet):
         self.flow_rd_loss = self.flow_rd_loss_sub.mean() * opts.flow_wt
         self.total_loss += self.flow_rd_loss
    
+        # feature consistency loss
+        #self.feat = self.feat.view(local_batch_size, -1, featdim, featdim)
+        #self.renderer_kp.rasterizer.image_size=featdim
+        #if not opts.finetune and self.epoch<5: 
+        #    feats_render, mask_render = render_feature(pred_v.detach(), faces, vfeat, Rmat.detach(), Tmat.detach(), skin.detach(), ppoint.detach(), scale.detach(),\
+        #        self.renderer_kp, local_batch_size, opts.n_mesh)
+        #else:
+        #    feats_render, mask_render = render_feature(pred_v.detach(), faces, vfeat, Rmat, Tmat, skin, ppoint, scale,\
+        #        self.renderer_kp, local_batch_size, opts.n_mesh)
+        #mask_obs =((self.occ!=0)[:,None] &  (self.masks[:]>0) [:,None]).float()
+        #mask_obs = F.interpolate(mask_obs, self.feat.shape[2:], mode='nearest')
+        #feat_obs = self.feat[:,:feats_render.shape[1]]
+        #feat_mask = mask_obs*mask_render[:,None] > 0
+        #self.feat_loss = (F.normalize(feat_obs, 2,1) * \
+        #                  F.normalize(feats_render, 2,1)).sum(1)
+        #self.feat_loss = (1-(self.feat_loss+1)/2) 
+        #self.feat_loss = self.feat_loss[feat_mask[:,0]].mean()
+  
         # 3) texture loss
         if opts.opt_tex=='yes':
             imgobs_rep = img_obs[:,None].repeat(1,1,1,1,1).view(-1,3,opts.img_size,opts.img_size)
