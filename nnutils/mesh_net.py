@@ -89,7 +89,7 @@ flags.DEFINE_float('l1tex_wt', 1.0, 'weight of l1 texture')
 flags.DEFINE_float('arap_wt', 1.0, 'weight of arap loss')
 flags.DEFINE_float('sigval', 1e-4, 'blur radius of soft renderer')
 flags.DEFINE_float('l1_wt', 1.0, 'weight of arap loss')
-flags.DEFINE_float('triangle_reg_wt', 0.005, 'weights to triangle smoothness prior')
+flags.DEFINE_float('triangle_reg_wt', 0.025, 'weights to triangle smoothness prior')
 flags.DEFINE_bool('catemodel', False, 'learn a category model')
 flags.DEFINE_bool('cnnpp', False, 'cnn principle points')
 flags.DEFINE_string('model_path', '',

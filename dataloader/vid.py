@@ -59,13 +59,19 @@ class VidDataset(base_data.BaseDataset):
         else:
             self.masklist = [('%s/%s/%s'%(opts.sil_path,i.split('/')[-2],i.split('/')[-1] )).replace('.jpg', '.png') for i in self.imglist]
         self.camlist =  [i.replace('JPEGImages', 'Camera').replace('.jpg', '.txt') for i in self.imglist]
-      
+
+        # viser format
         if dframe==1:
             self.flowfwlist = [i.replace('JPEGImages', 'FlowFW').replace('.jpg', '.pfm').replace('.png', '.pfm').replace('%s/'%seqname, '%s/flo-'%seqname) for i in self.imglist]
             self.flowbwlist = [i.replace('JPEGImages', 'FlowBW').replace('.jpg', '.pfm').replace('.png', '.pfm').replace('%s/'%seqname, '%s/flo-'%seqname) for i in self.imglist]
         else:
             self.flowfwlist = [i.replace('JPEGImages', 'FlowFW').replace('.jpg', '.pfm').replace('.png', '.pfm').replace('%s/'%seqname, '%s_%02d/flo-'%(seqname,self.dframe)) for i in self.imglist]
             self.flowbwlist = [i.replace('JPEGImages', 'FlowBW').replace('.jpg', '.pfm').replace('.png', '.pfm').replace('%s/'%seqname, '%s_%02d/flo-'%(seqname,self.dframe)) for i in self.imglist]
+
+        ## banmo format
+        #self.flowfwlist = [i.replace('JPEGImages', 'FlowFW_%d'%dframe).replace('.jpg', '.pfm').replace('.png', '.pfm').replace('%s/'%seqname, '%s/flo-'%(seqname)) for i in self.imglist]
+        #self.flowbwlist = [i.replace('JPEGImages', 'FlowBW_%d'%dframe).replace('.jpg', '.pfm').replace('.png', '.pfm').replace('%s/'%seqname, '%s/flo-'%(seqname)) for i in self.imglist]
+
 
         if rtk_path == 'none':
             self.rtklist =[i.replace('JPEGImages', 'Cameras').replace('.jpg', '.txt') for i in self.imglist]
