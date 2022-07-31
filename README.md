@@ -3,6 +3,7 @@
 For better and more robust reconstruction of quadreped animals and human, please check out [BANMo](https://github.com/facebookresearch/banmo).
 
 ### Changelog
+- **07/31/22**: Use a larger laplacian smoothness loss by default.
 - **05/16/22**: Fix flip bug in flow pre-computation.
 - **05/22/22**: Fix bug in flow rendering that causes self-intersection.
 
