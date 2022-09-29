@@ -96,6 +96,27 @@ https://user-images.githubusercontent.com/13134872/169685177-f125ce0b-7fd2-41be-
 https://user-images.githubusercontent.com/13134872/169685164-bb0a3433-e4b0-428a-8204-689aeb4687b2.mp4
 
 
+## Evaluation
+Download sample results
+```
+wget https://www.dropbox.com/s/4bne43yxp89aleu/breakdance-results.zip
+unzip breakdance-results.zip
+```
+Run evaluation
+```
+python eval_pck.py  --testdir log/rbreakdance-flare-viser/ --seqname breakdance-flare --type mesh
+```
+This should return the result of PCK: 70.52% (Tab 1 of the paper, break-1.)
+
+To evalute on other sequences, change $seqname to {breakdance, dance-twirl, parkour} etc. 
+The annotated keypoints are stored at `database/joint_annotations`.
+The results to be evaluated should be stored at $testdir, and contain meshes and camera paramters in the following format.
+```
+# $seqname-pred%d.ply/ # mesh (V,F)
+# $seqname-cam%d.txt/ # camera
+# [R_3x3|T_3x1] # V'=RV+T should be in the view space
+# [fx,fy,px,py] # in pixel
+```
 
 
 ## Additional Notes
@@ -160,6 +181,4 @@ External repos:
 </details>
 
 ## TODO
-- evaluation data and scripts
 - code clean up
-
